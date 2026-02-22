@@ -6,7 +6,6 @@ let tokenExpiry = 0;
 
 function getOAuthToken() {
   const now = Date.now();
-  // Refresh if token is expired or within 5 min of expiry
   if (cachedToken && now < tokenExpiry - 300_000) {
     return cachedToken;
   }
@@ -15,18 +14,30 @@ function getOAuthToken() {
     const raw = execSync(`databricks auth token -p ${profile}`, { encoding: 'utf8' });
     const parsed = JSON.parse(raw);
     cachedToken = parsed.access_token;
-    // Databricks OAuth tokens typically last 1 hour
     tokenExpiry = now + 3600_000;
     return cachedToken;
   } catch (err) {
     console.error('Failed to get Databricks OAuth token:', err.message);
-    return cachedToken; // return stale token as fallback
+    return cachedToken;
   }
 }
 
 function createPool() {
-  const useOAuth = process.env.LAKEBASE_AUTH === 'oauth';
+  // Priority 1: DATABASE_URL connection string (used in production / Amplify)
+  if (process.env.DATABASE_URL) {
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+    pool.on('error', (err) => console.error('Pool error:', err));
+    return pool;
+  }
 
+  // Priority 2: OAuth via Databricks CLI (local dev)
+  const useOAuth = process.env.LAKEBASE_AUTH === 'oauth';
   const config = {
     host: process.env.LAKEBASE_HOST,
     port: parseInt(process.env.LAKEBASE_PORT || '5432', 10),
@@ -46,9 +57,7 @@ function createPool() {
   }
 
   const pool = new Pool(config);
-  pool.on('error', (err) => {
-    console.error('Unexpected pool error:', err);
-  });
+  pool.on('error', (err) => console.error('Pool error:', err));
   return pool;
 }
 

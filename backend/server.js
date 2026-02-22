@@ -109,17 +109,56 @@ app.get('/topics', async (req, res) => {
   }
 });
 
-// GET /dashboard-token — mint a token for the embedded Databricks dashboard
-app.get('/dashboard-token', (req, res) => {
+// Service principal token cache for dashboard embedding
+let spToken = null;
+let spTokenExpiry = 0;
+
+async function getServicePrincipalToken() {
+  const now = Date.now();
+  if (spToken && now < spTokenExpiry - 60_000) {
+    return spToken;
+  }
+
+  const clientId = process.env.DATABRICKS_SP_CLIENT_ID;
+  const clientSecret = process.env.DATABRICKS_SP_CLIENT_SECRET;
+  const workspaceUrl = process.env.DATABRICKS_WORKSPACE_URL;
+
+  if (!clientId || !clientSecret || !workspaceUrl) {
+    throw new Error('Service principal credentials not configured');
+  }
+
+  const tokenUrl = `${workspaceUrl.replace(/\/$/, '')}/oidc/v1/token`;
+
+  const resp = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: clientId,
+      client_secret: clientSecret,
+      scope: 'all-apis',
+    }),
+  });
+
+  if (!resp.ok) {
+    const body = await resp.text();
+    throw new Error(`Token request failed (${resp.status}): ${body}`);
+  }
+
+  const data = await resp.json();
+  spToken = data.access_token;
+  spTokenExpiry = now + (data.expires_in || 3600) * 1000;
+  return spToken;
+}
+
+// GET /dashboard-token — mint a SP token for the embedded Databricks dashboard
+app.get('/dashboard-token', async (req, res) => {
   try {
-    const token = pool.getOAuthToken();
-    if (!token) {
-      return res.status(503).json({ error: 'No token available' });
-    }
+    const token = await getServicePrincipalToken();
     res.json({ token });
   } catch (err) {
-    console.error('Token error:', err);
-    res.status(500).json({ error: 'Failed to get dashboard token' });
+    console.error('Dashboard token error:', err);
+    res.status(503).json({ error: 'Dashboard token unavailable' });
   }
 });
 
