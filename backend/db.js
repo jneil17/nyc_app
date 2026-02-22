@@ -52,4 +52,6 @@ function createPool() {
   return pool;
 }
 
-module.exports = createPool();
+const pool = createPool();
+pool.getOAuthToken = getOAuthToken;
+module.exports = pool;

@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import NYCMap from './NYCMap';
+import { BoroughChart, LocationPieChart, RecentResponsesTable } from './RegistrationCharts';
+import EmbeddedDashboard from './EmbeddedDashboard';
 import { getRegistrations } from '../../services/api';
 
 const POLL_INTERVAL = 10000; // 10 seconds
 
 function DashboardPage() {
-  const dashboardUrl = process.env.REACT_APP_DASHBOARD_EMBED_URL;
   const [registrations, setRegistrations] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
 
@@ -24,6 +25,9 @@ function DashboardPage() {
     const interval = setInterval(fetchData, POLL_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchData]);
+
+  const nycCount = registrations.filter((r) => r.location_type === 'nyc').length;
+  const boroughCount = new Set(registrations.filter((r) => r.borough).map((r) => r.borough)).size;
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-8">
@@ -47,15 +51,11 @@ function DashboardPage() {
           <div className="text-sm text-gray-500">Total Registered</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-          <div className="text-3xl font-bold text-navy-900">
-            {registrations.filter((r) => r.location_type === 'nyc').length}
-          </div>
+          <div className="text-3xl font-bold text-navy-900">{nycCount}</div>
           <div className="text-sm text-gray-500">From NYC</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-          <div className="text-3xl font-bold text-navy-800">
-            {new Set(registrations.filter((r) => r.borough).map((r) => r.borough)).size}
-          </div>
+          <div className="text-3xl font-bold text-navy-800">{boroughCount}</div>
           <div className="text-sm text-gray-500">Boroughs Represented</div>
         </div>
       </div>
@@ -69,29 +69,50 @@ function DashboardPage() {
         <NYCMap registrations={registrations} />
       </section>
 
-      {/* Embedded Dashboard Section */}
+      {/* Charts Row */}
+      <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <section className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+          <h2 className="text-lg font-bold text-navy-900 mb-4">
+            <i className="fas fa-chart-bar mr-2 text-lava-500"></i>
+            Registrations by Borough
+          </h2>
+          <BoroughChart registrations={registrations} />
+        </section>
+
+        <section className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+          <h2 className="text-lg font-bold text-navy-900 mb-4">
+            <i className="fas fa-chart-pie mr-2 text-lava-500"></i>
+            Where Are Attendees From?
+          </h2>
+          <LocationPieChart registrations={registrations} />
+        </section>
+      </div>
+
+      {/* Databricks AI/BI Dashboard */}
+      <section className="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
+        <h2 className="text-lg font-bold text-navy-900 mb-4">
+          <i className="fas fa-database mr-2 text-lava-500"></i>
+          Databricks AI/BI Dashboard
+        </h2>
+        <EmbeddedDashboard />
+      </section>
+
+      {/* Recent Responses */}
       <section className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
         <h2 className="text-lg font-bold text-navy-900 mb-4">
-          <i className="fas fa-chart-bar mr-2 text-lava-500"></i>
-          Top Reasons for Attending
+          <i className="fas fa-comments mr-2 text-lava-500"></i>
+          Recent Responses
         </h2>
-        {dashboardUrl ? (
-          <iframe
-            src={dashboardUrl}
-            title="Databricks Dashboard"
-            className="w-full rounded-lg border-0"
-            style={{ height: 500 }}
-          />
-        ) : (
-          <div className="bg-oat-medium rounded-lg flex items-center justify-center" style={{ height: 300 }}>
-            <div className="text-center text-gray-400">
-              <i className="fas fa-chart-pie text-5xl mb-3 block"></i>
-              <p className="font-medium">Databricks AI/BI Dashboard</p>
-              <p className="text-sm">Will show topic analysis of attendee reasons</p>
-            </div>
-          </div>
-        )}
+        <RecentResponsesTable registrations={registrations} />
       </section>
+
+      {/* Databricks Branding */}
+      <div className="mt-6 text-center">
+        <p className="text-xs text-gray-400">
+          <i className="fas fa-database mr-1"></i>
+          Data stored in Databricks LakeBase — Analytics powered by Unity Catalog
+        </p>
+      </div>
     </main>
   );
 }

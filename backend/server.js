@@ -109,6 +109,20 @@ app.get('/topics', async (req, res) => {
   }
 });
 
+// GET /dashboard-token — mint a token for the embedded Databricks dashboard
+app.get('/dashboard-token', (req, res) => {
+  try {
+    const token = pool.getOAuthToken();
+    if (!token) {
+      return res.status(503).json({ error: 'No token available' });
+    }
+    res.json({ token });
+  } catch (err) {
+    console.error('Token error:', err);
+    res.status(500).json({ error: 'Failed to get dashboard token' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`NYC Demo API running on port ${PORT}`);
 });
