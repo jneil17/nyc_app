@@ -621,14 +621,90 @@ conn.close()
 
 ---
 
+## Multi-Claude Collaboration Workflow
+
+> **IMPORTANT: All Claude sessions MUST follow this workflow to avoid merge conflicts.**
+
+Multiple Claude Code sessions may work on this repo concurrently. Each session operates on its own branch and merges to `main` frequently.
+
+### Branch Convention
+- **Claude 1** (frontend/dashboard): works on `claude-1` branch (or `main` directly if solo)
+- **Claude 2** (backend/infra): works on `claude-2` branch
+- **Additional sessions**: use `claude-N` naming (e.g., `claude-3`)
+
+### Required Git Workflow (every session must follow)
+
+**At the start of your session:**
+```bash
+# 1. Make sure you're on your branch (create if it doesn't exist)
+git checkout claude-N 2>/dev/null || git checkout -b claude-N
+
+# 2. Pull latest main and rebase your branch on top
+git fetch origin
+git rebase origin/main
+```
+
+**Before every commit (and at minimum every 15-20 minutes of active work):**
+```bash
+# 1. Fetch latest main
+git fetch origin
+
+# 2. Rebase your branch onto main to catch other Claude's changes
+git rebase origin/main
+
+# 3. If there are conflicts, resolve them, then:
+#    git add <resolved files>
+#    git rebase --continue
+
+# 4. Commit your changes on your branch
+git add <files>
+git commit -m "your message"
+
+# 5. Push your branch
+git push origin claude-N --force-with-lease
+
+# 6. Merge to main (fast-forward if possible)
+git checkout main
+git pull origin main
+git merge claude-N
+git push origin main
+
+# 7. Switch back to your branch
+git checkout claude-N
+```
+
+**If merge to main fails due to conflicts:**
+```bash
+# Abort the merge, go back to your branch, rebase, and resolve
+git merge --abort
+git checkout claude-N
+git rebase origin/main
+# Resolve conflicts, then retry the merge
+```
+
+### Rules
+1. **Never force-push to `main`** — only force-push your own `claude-N` branch
+2. **CLAUDE.md is a shared file** — be careful editing it. Prefer appending to sections rather than rewriting them. If you see another Claude's updates, preserve them.
+3. **Commit frequently, merge frequently** — small merges are easier to resolve than big ones
+4. **Check `git log origin/main` before merging** — understand what the other Claude has done
+5. **If you see conflicts in CLAUDE.md**, the other Claude's infrastructure/status updates take priority for their sections — don't overwrite their progress markers
+
+### Ownership Boundaries
+To minimize conflicts, each Claude session should primarily edit files in its own domain:
+- **Claude 1 (frontend):** `frontend/`, dashboard-related sections of CLAUDE.md
+- **Claude 2 (backend/infra):** `backend/`, `databricks/`, `scripts/`, `.env.example`, infra sections of CLAUDE.md
+
+---
+
 ## Development Workflow
 
 1. **Clone repo, install ai-dev-kit** (follow https://github.com/databricks-solutions/ai-dev-kit)
 2. **Fill in Open Infrastructure Questions** above
 3. **Run setup scripts** in order (01 → 05)
 4. **`cd frontend && npm install && npm start`** for local development
-5. **Deploy to Amplify** via git push (Amplify auto-builds from branch)
-6. **Test end-to-end:** Submit registration → see it in LakeBase → see it on dashboard
+5. **Start backend:** `cd backend && npm install && npm run dev`
+6. **Deploy to Amplify** via git push to `main` (Amplify auto-builds from `main` branch)
+7. **Test end-to-end:** Submit registration → see it in LakeBase → see it on dashboard
 
 ---
 
