@@ -1,0 +1,11 @@
+# Required for Cloudflare Worker local dev / deploy
+DATABASE_URL=postgresql://<user>:<password>@<host>:5432/databricks_postgres?sslmode=require
+
+DATABRICKS_WORKSPACE_URL=https://<workspace>.cloud.databricks.com
+DATABRICKS_SP_CLIENT_ID=<service-principal-client-id>
+DATABRICKS_SP_CLIENT_SECRET=<service-principal-client-secret>
+
+# Optional overrides
+DATABRICKS_DASHBOARD_ID=01f1103d19bc175083fbb5392f987e10
+DATABRICKS_GENIE_SPACE_ID=01f110512fd015ada6b59c70c0ef42a6
+CORS_ORIGINS=https://dbxdemonyc.com,http://localhost:3000,http://localhost:5173

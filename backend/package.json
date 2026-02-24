@@ -1,17 +1,21 @@
 {
   "name": "nyc-demo-backend",
-  "version": "1.0.0",
-  "description": "Backend API for NYC Demo — connects React frontend to LakeBase Postgres",
-  "main": "server.js",
+  "version": "2.0.0",
+  "description": "Hono API for NYC Demo — Cloudflare Workers + LakeBase",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "wrangler dev --port 3001",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "pg": "^8.13.1",
-    "serverless-http": "^4.0.0"
+    "hono": "^4.9.7",
+    "postgres": "^3.4.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260218.0",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.40.3"
   }
 }

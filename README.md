@@ -25,8 +25,8 @@ Built for a NYC Founders event, this project demonstrates how [LakeBase](https:/
                               |
                     +---------+---------+
                     |                   |
-              React Frontend      Express Backend
-           (AWS Amplify Static)  (Amplify WEB_COMPUTE)
+              React Frontend      Hono API Worker
+           (Cloudflare SSR)      (Cloudflare Workers)
                     |                   |
                     |     +-------------+-------------+
                     |     |             |             |
@@ -47,7 +47,7 @@ Built for a NYC Founders event, this project demonstrates how [LakeBase](https:/
      for AI/BI Dashboard    (Claude Haiku)
 ```
 
-**Data flow:** User submits registration -> Express API -> LakeBase (Postgres) -> Unity Catalog (federated) -> AI/BI Dashboard + NLP Pipeline
+**Data flow:** User submits registration -> Hono API Worker -> LakeBase (Postgres) -> Unity Catalog (federated) -> AI/BI Dashboard + NLP Pipeline
 
 ---
 
@@ -55,13 +55,13 @@ Built for a NYC Founders event, this project demonstrates how [LakeBase](https:/
 
 | Layer | Technology | Why |
 |-------|-----------|-----|
-| Frontend | React (CRA) + Tailwind CSS | Fast SPA with utility-first styling |
+| Frontend | TanStack Start (SSR) + React + Tailwind CSS | Fast SPA with utility-first styling |
 | Mapping | react-leaflet + CARTO tiles | Lightweight choropleth, no API key needed |
 | Charts | recharts | Borough bar chart, location pie, responses table |
 | Dashboard Embed | @databricks/aibi-client SDK | Native Lakeview dashboard embed via scoped SP token |
-| Frontend Hosting | AWS Amplify (Static) + Route 53 | Custom domain, auto-deploy from git |
-| Backend | Express.js (Node.js) | REST API proxying to LakeBase |
-| Backend Hosting | AWS Amplify (WEB_COMPUTE) | Publicly accessible, no auth wall |
+| Frontend Hosting | Cloudflare Workers (SSR) | SSR delivery at edge + wrangler deploy |
+| Backend | Hono (Cloudflare Workers) | Edge API + Databricks token broker + Genie proxy |
+| Backend Hosting | Cloudflare Workers | Low-latency global edge runtime |
 | Database | LakeBase (Managed Postgres) | Databricks-native OLTP with UC integration |
 | Data Platform | Databricks (Unity Catalog, SQL Warehouse) | Analytics + embedded dashboard |
 | NLP | Foundation Model API (Claude Haiku) | Zero-shot topic classification |
@@ -134,21 +134,18 @@ python databricks/setup/02_register_uc_catalog.py
 Copy the example env file and fill in your values:
 
 ```bash
-cp .env.example backend/.env
+# Use .env.example values as Wrangler vars
+# backend: copy into backend/.dev.vars for local wrangler dev
+# frontend: export VITE_API_URL in your shell
 ```
 
-**For local development with Databricks OAuth:**
+**For local development:**
 ```env
-LAKEBASE_HOST=<your-lakebase-host>
-LAKEBASE_PORT=5432
-LAKEBASE_DB=databricks_postgres
-LAKEBASE_USER=<your-email>
-LAKEBASE_AUTH=oauth
-DATABRICKS_PROFILE=<your-cli-profile>
+DATABASE_URL=postgresql://<user>:<password>@<host>:5432/databricks_postgres?sslmode=require
 DATABRICKS_WORKSPACE_URL=https://<your-workspace>.cloud.databricks.com
 DATABRICKS_SP_CLIENT_ID=<service-principal-app-id>
 DATABRICKS_SP_CLIENT_SECRET=<service-principal-secret>
-PORT=3001
+VITE_API_URL=http://localhost:3001
 ```
 
 **For production with a native PG role:**
@@ -166,14 +163,14 @@ DATABRICKS_SP_CLIENT_SECRET=<service-principal-secret>
 pnpm dev:backend
 
 # Terminal 2: Start frontend
-REACT_APP_API_URL=http://localhost:3001 pnpm dev:frontend
+VITE_API_URL=http://localhost:3001 pnpm dev:frontend
 ```
 
 Or run them individually from their directories:
 
 ```bash
 cd backend && pnpm dev
-cd frontend && pnpm start
+cd frontend && pnpm dev
 ```
 
 Visit `http://localhost:3000` — register, then check the dashboard.
@@ -184,7 +181,7 @@ Visit `http://localhost:3000` — register, then check the dashboard.
 # Using DATABASE_URL
 DATABASE_URL="postgresql://..." ./scripts/seed_data.sh
 
-# Or using Databricks OAuth
+# Or build from existing env and run
 ./scripts/seed_data.sh
 ```
 
@@ -287,25 +284,22 @@ A Databricks Genie space is configured with the `event_registrations` table as a
 
 ## Deployment
 
-### Frontend (AWS Amplify Static)
+### Frontend (Cloudflare Workers + TanStack Start SSR)
 
-The frontend is a standard Create React App deployed as a static site on Amplify.
+The frontend is server-rendered with TanStack Start and deployed via Wrangler.
 
 - **App Root:** `frontend`
-- **Build:** `pnpm install && pnpm build`
-- **Env var:** `REACT_APP_API_URL=https://<your-backend-url>`
+- **Build:** `pnpm --filter frontend build`
+- **Deploy:** `pnpm --filter frontend deploy`
+- **Env var:** `VITE_API_URL=https://<your-backend-url>`
 
-### Backend (AWS Amplify WEB_COMPUTE)
+### Backend (Cloudflare Workers + Hono)
 
-The backend runs as a persistent Express server on Amplify's WEB_COMPUTE platform.
+The backend is a Hono worker (no always-on server process) deployed via Wrangler.
 
-**Key gotchas:**
-1. Amplify WEB_COMPUTE does NOT inject console env vars into the compute runtime — you must write a `.env` file during the build step
-2. Use `nodejs20.x` runtime (not `nodejs18.x`)
-3. The `deploy-manifest.json` needs `imageSettings`, static routes with fallback, and a catch-all compute route
-4. Use the branch-specific URL (`main.<app-id>.amplifyapp.com`) unless you set a production branch
-
-See CLAUDE.md for the complete working buildspec.
+- **App Root:** `backend`
+- **Deploy:** `pnpm --filter nyc-demo-backend deploy`
+- **Worker vars:** `DATABASE_URL`, `DATABRICKS_WORKSPACE_URL`, `DATABRICKS_SP_CLIENT_ID`, `DATABRICKS_SP_CLIENT_SECRET`
 
 ---
 
@@ -344,7 +338,7 @@ Or use the Databricks notebook: `databricks/notebooks/demo_reset.py`
 
 ```
 nyc_app/
-├── frontend/                  # React app (CRA + Tailwind)
+├── frontend/                  # TanStack Start SSR app
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── Registration/  # 4-step wizard (LocationSelector, BoroughSelector, etc.)
@@ -352,10 +346,9 @@ nyc_app/
 │   │   │   └── common/        # Header
 │   │   ├── data/              # neighborhoods.json, us-states.json
 │   │   └── services/          # api.js (fetch client)
-│   └── public/                # index.html (Tailwind CDN), GeoJSON
-├── backend/                   # Express.js API
-│   ├── server.js              # All endpoints
-│   └── db.js                  # Postgres pool (DATABASE_URL or OAuth)
+│   └── public/                # GeoJSON + static assets
+├── backend/                   # Hono API (Cloudflare Worker)
+│   └── src/index.ts           # All endpoints
 ├── databricks/
 │   ├── setup/                 # UC catalog registration script
 │   ├── jobs/                  # NLP topic classifier (Foundation Model API)
