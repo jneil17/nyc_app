@@ -1,0 +1,14 @@
+{
+  "name": "nyc-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NYC Founders Demo — Databricks LakeBase + React",
+  "scripts": {
+    "dev:frontend": "pnpm --filter frontend start",
+    "dev:backend": "pnpm --filter nyc-demo-backend dev",
+    "build:frontend": "pnpm --filter frontend build",
+    "start:backend": "pnpm --filter nyc-demo-backend start",
+    "install:all": "pnpm install"
+  },
+  "packageManager": "pnpm@9.15.4"
+}

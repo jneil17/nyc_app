@@ -86,7 +86,7 @@ Built for a NYC Founders event, this project demonstrates how [LakeBase](https:/
 
 ### Prerequisites
 
-- **Node.js** 18+ and npm
+- **Node.js** 18+ and **pnpm** (`npm install -g pnpm`)
 - **Databricks CLI** (`databricks auth login`)
 - **A Databricks workspace** with LakeBase enabled
 - **psql** (PostgreSQL client) for database setup
@@ -98,11 +98,8 @@ Built for a NYC Founders event, this project demonstrates how [LakeBase](https:/
 git clone https://github.com/jneil17/nyc_app.git
 cd nyc_app
 
-# Install frontend dependencies
-cd frontend && npm install && cd ..
-
-# Install backend dependencies
-cd backend && npm install && cd ..
+# Install all workspace dependencies
+pnpm install
 ```
 
 ### 2. Set Up LakeBase
@@ -166,10 +163,17 @@ DATABRICKS_SP_CLIENT_SECRET=<service-principal-secret>
 
 ```bash
 # Terminal 1: Start backend
-cd backend && node server.js
+pnpm dev:backend
 
 # Terminal 2: Start frontend
-cd frontend && REACT_APP_API_URL=http://localhost:3001 npm start
+REACT_APP_API_URL=http://localhost:3001 pnpm dev:frontend
+```
+
+Or run them individually from their directories:
+
+```bash
+cd backend && pnpm dev
+cd frontend && pnpm start
 ```
 
 Visit `http://localhost:3000` — register, then check the dashboard.
@@ -288,7 +292,7 @@ A Databricks Genie space is configured with the `event_registrations` table as a
 The frontend is a standard Create React App deployed as a static site on Amplify.
 
 - **App Root:** `frontend`
-- **Build:** `npm install && npm run build`
+- **Build:** `pnpm install && pnpm build`
 - **Env var:** `REACT_APP_API_URL=https://<your-backend-url>`
 
 ### Backend (AWS Amplify WEB_COMPUTE)
@@ -359,6 +363,8 @@ nyc_app/
 ├── scripts/
 │   ├── demo_reset.sh          # Truncate + optional re-seed
 │   └── seed_data.sh           # Insert 25 realistic fake registrations
+├── package.json               # pnpm workspace root
+├── pnpm-workspace.yaml        # Workspace package definitions
 ├── CLAUDE.md                  # Full architecture docs + infrastructure details
 ├── TASKS.md                   # Task tracking board
 └── .env.example               # Environment variable template
