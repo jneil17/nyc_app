@@ -73,6 +73,11 @@ if (process.env.DATABASE_URL_DEV) {
   pools.dev = createPoolFromUrl(process.env.DATABASE_URL_DEV);
 }
 
+// Create demo-live pool if DATABASE_URL_DEMO_LIVE is configured
+if (process.env.DATABASE_URL_DEMO_LIVE) {
+  pools['demo-live'] = createPoolFromUrl(process.env.DATABASE_URL_DEMO_LIVE);
+}
+
 let activeBranch = 'production';
 
 function getPool() {
