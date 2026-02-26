@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const pool = require('./db');
+const { getPool, switchBranch, getCurrentBranch, getAvailableBranches } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,7 +22,7 @@ app.use(express.json());
 // Health check
 app.get('/health', async (req, res) => {
   try {
-    await pool.query('SELECT 1');
+    await getPool().query('SELECT 1');
     res.json({ status: 'ok', db: 'connected' });
   } catch (err) {
     res.status(503).json({ status: 'error', db: 'disconnected', message: err.message });
@@ -38,7 +38,7 @@ app.post('/registrations', async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    const result = await getPool().query(
       `INSERT INTO event_registrations (user_id, location_type, borough, neighborhood, state, reason)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
@@ -54,7 +54,7 @@ app.post('/registrations', async (req, res) => {
 // GET /registrations — fetch all registrations (for dashboard polling)
 app.get('/registrations', async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await getPool().query(
       `SELECT user_id, location_type, borough, neighborhood, state, reason, created_at
        FROM event_registrations
        ORDER BY created_at DESC`
@@ -69,7 +69,7 @@ app.get('/registrations', async (req, res) => {
 // GET /registrations/stats — aggregated counts for the map
 app.get('/registrations/stats', async (req, res) => {
   try {
-    const boroughCounts = await pool.query(
+    const boroughCounts = await getPool().query(
       `SELECT borough, COUNT(*) as count
        FROM event_registrations
        WHERE borough IS NOT NULL
@@ -77,7 +77,7 @@ app.get('/registrations/stats', async (req, res) => {
        ORDER BY count DESC`
     );
 
-    const neighborhoodCounts = await pool.query(
+    const neighborhoodCounts = await getPool().query(
       `SELECT borough, neighborhood, COUNT(*) as count
        FROM event_registrations
        WHERE neighborhood IS NOT NULL
@@ -85,7 +85,7 @@ app.get('/registrations/stats', async (req, res) => {
        ORDER BY count DESC`
     );
 
-    const totalCount = await pool.query(
+    const totalCount = await getPool().query(
       `SELECT COUNT(*) as count FROM event_registrations`
     );
 
@@ -103,7 +103,7 @@ app.get('/registrations/stats', async (req, res) => {
 // GET /topics — fetch topic analysis (from NLP pipeline, synced back to LakeBase)
 app.get('/topics', async (req, res) => {
   try {
-    const result = await pool.query(
+    const result = await getPool().query(
       `SELECT topic_label, topic_count, top_words, updated_at
        FROM topic_analysis
        ORDER BY topic_count DESC`
@@ -115,6 +115,29 @@ app.get('/topics', async (req, res) => {
     }
     console.error('Topics query error:', err);
     res.status(500).json({ error: 'Failed to fetch topics' });
+  }
+});
+
+// ── Branch switching (for demo) ──────────────────────────────────────
+// GET /admin/branch — show current branch info
+app.get('/admin/branch', (req, res) => {
+  res.json({
+    current: getCurrentBranch(),
+    available: getAvailableBranches(),
+  });
+});
+
+// POST /admin/switch-branch — switch active database branch
+app.post('/admin/switch-branch', (req, res) => {
+  const { branch } = req.body;
+  if (!branch) {
+    return res.status(400).json({ error: 'branch is required' });
+  }
+  try {
+    const result = switchBranch(branch);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 

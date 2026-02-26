@@ -60,3 +60,16 @@ export async function getRegistrations() {
 
   return res.json();
 }
+
+export async function getBranch() {
+  if (!API_URL) {
+    return { current: 'production', available: ['production'] };
+  }
+
+  const res = await fetch(`${API_URL}/admin/branch`);
+  if (!res.ok) {
+    return { current: 'production', available: ['production'] };
+  }
+
+  return res.json();
+}

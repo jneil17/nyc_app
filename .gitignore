@@ -37,3 +37,6 @@ app.yaml
 # Screenshots (move to docs/screenshots/ if needed for README)
 *.png
 !frontend/public/*.png
+
+# Demo prep notes (not for sharing)
+branching_demo.md

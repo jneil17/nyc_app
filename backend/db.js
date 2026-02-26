@@ -22,21 +22,23 @@ function getOAuthToken() {
   }
 }
 
+function createPoolFromUrl(connectionString) {
+  const pool = new Pool({
+    connectionString,
+    ssl: { rejectUnauthorized: false },
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+  });
+  pool.on('error', (err) => console.error('Pool error:', err));
+  return pool;
+}
+
 function createPool() {
-  // Priority 1: DATABASE_URL connection string (used in production / Amplify)
   if (process.env.DATABASE_URL) {
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-      max: 10,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
-    });
-    pool.on('error', (err) => console.error('Pool error:', err));
-    return pool;
+    return createPoolFromUrl(process.env.DATABASE_URL);
   }
 
-  // Priority 2: OAuth via Databricks CLI (local dev)
   const useOAuth = process.env.LAKEBASE_AUTH === 'oauth';
   const config = {
     host: process.env.LAKEBASE_HOST,
@@ -61,6 +63,38 @@ function createPool() {
   return pool;
 }
 
-const pool = createPool();
-pool.getOAuthToken = getOAuthToken;
-module.exports = pool;
+// Branch management
+const pools = {
+  production: createPool(),
+};
+
+// Create dev pool if DATABASE_URL_DEV is configured
+if (process.env.DATABASE_URL_DEV) {
+  pools.dev = createPoolFromUrl(process.env.DATABASE_URL_DEV);
+}
+
+let activeBranch = 'production';
+
+function getPool() {
+  return pools[activeBranch] || pools.production;
+}
+
+function switchBranch(branch) {
+  if (!pools[branch]) {
+    throw new Error(`No pool configured for branch: ${branch}. Available: ${Object.keys(pools).join(', ')}`);
+  }
+  const prev = activeBranch;
+  activeBranch = branch;
+  console.log(`Switched database branch: ${prev} -> ${branch}`);
+  return { previous: prev, current: branch };
+}
+
+function getCurrentBranch() {
+  return activeBranch;
+}
+
+function getAvailableBranches() {
+  return Object.keys(pools);
+}
+
+module.exports = { getPool, switchBranch, getCurrentBranch, getAvailableBranches, getOAuthToken };
