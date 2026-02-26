@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture — Three Pillars</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #1B3139;
+    color: #FFFFFF;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Lava bar at bottom */
+  body::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: #FF3621;
+  }
+
+  /* Databricks logo top-right */
+  .logo {
+    position: absolute;
+    top: 40px;
+    right: 48px;
+    width: 40px;
+    height: 40px;
+    opacity: 0.7;
+  }
+
+  /* Title */
+  .title {
+    font-size: 52px;
+    font-weight: 800;
+    color: #FFFFFF;
+    padding: 56px 80px 0;
+    line-height: 1.15;
+  }
+
+  /* Three pillars container */
+  .pillars {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 48px;
+    padding: 48px 80px 40px;
+    height: calc(100% - 140px);
+    align-content: start;
+  }
+
+  /* Each pillar */
+  .pillar {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pillar-header {
+    font-size: 30px;
+    font-weight: 800;
+    color: #FF5F46;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #FF5F46;
+    margin-bottom: 24px;
+  }
+
+  .pillar-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .item-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .item-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag-green { background: rgba(0, 169, 114, 0.25); color: #5CEDB0; }
+  .tag-red { background: rgba(255, 54, 33, 0.25); color: #FF7A5C; }
+  .tag-blue { background: rgba(59, 108, 245, 0.25); color: #8CB0FF; }
+
+  .item-desc {
+    font-size: 17px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.45;
+  }
+
+  .divider {
+    width: 40px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 4px 0;
+  }
+
+  /* Flow arrows between pillars */
+  .flow-label {
+    position: absolute;
+    bottom: 32px;
+    left: 80px;
+    right: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.5px;
+  }
+  .flow-label .arrow { color: #FF5F46; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- Databricks logo (SVG inline) -->
+<svg class="logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20 0L3.2 9.7V12.5L20 22.2L36.8 12.5V9.7L20 0Z" fill="#FF3621" opacity="0.9"/>
+  <path d="M20 8.5L3.2 18.2V21L20 30.7L36.8 21V18.2L20 8.5Z" fill="#FF3621" opacity="0.65"/>
+  <path d="M20 17L3.2 26.7V29.5L20 39.2L36.8 29.5V26.7L20 17Z" fill="#FF3621" opacity="0.4"/>
+</svg>
+
+<div class="title">How It All Fits Together</div>
+
+<div class="pillars">
+
+  <!-- Pillar 1: Application -->
+  <div class="pillar">
+    <div class="pillar-header">Application Layer</div>
+    <div class="pillar-body">
+      <div class="item">
+        <div class="item-name">React Frontend <span class="item-tag tag-blue">UI</span></div>
+        <div class="item-desc">Registration wizard + live dashboard with map, charts, and embedded analytics</div>
+      </div>
+      <div class="divider"></div>
+      <div class="item">
+        <div class="item-name">Express.js API <span class="item-tag tag-blue">Backend</span></div>
+        <div class="item-desc">REST endpoints, auth token minting, Genie proxy — deployed on AWS Amplify</div>
+      </div>
+      <div class="divider"></div>
+      <div class="item">
+        <div class="item-name">AWS Amplify <span class="item-tag tag-blue">Hosting</span></div>
+        <div class="item-desc">Static CDN for frontend, serverless compute for backend — zero auth wall</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pillar 2: LakeBase -->
+  <div class="pillar">
+    <div class="pillar-header">LakeBase (OLTP)</div>
+    <div class="pillar-body">
+      <div class="item">
+        <div class="item-name">Managed Postgres <span class="item-tag tag-green">PG 17</span></div>
+        <div class="item-desc">Autoscaling serverless Postgres — just point your app at it like any database</div>
+      </div>
+      <div class="divider"></div>
+      <div class="item">
+        <div class="item-name">Git-like Branching <span class="item-tag tag-green">Key Feature</span></div>
+        <div class="item-desc">Create isolated database branches for dev/test. Zero-downtime switchover — just like git</div>
+      </div>
+      <div class="divider"></div>
+      <div class="item">
+        <div class="item-name">Unity Catalog Federation <span class="item-tag tag-green">Bridge</span></div>
+        <div class="item-desc">LakeBase data automatically queryable from the Lakehouse. No ETL, no sync jobs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pillar 3: Databricks Platform -->
+  <div class="pillar">
+    <div class="pillar-header">Databricks Platform</div>
+    <div class="pillar-body">
+      <div class="item">
+        <div class="item-name">AI/BI Dashboard <span class="item-tag tag-red">Embedded</span></div>
+        <div class="item-desc">Lakeview dashboard embedded natively in the app via AIBI SDK</div>
+      </div>
+      <div class="divider"></div>
+      <div class="item">
+        <div class="item-name">Genie <span class="item-tag tag-red">NL-to-SQL</span></div>
+        <div class="item-desc">Ask questions about event data in plain English — powered by the Conversation API</div>
+      </div>
+      <div class="divider"></div>
+      <div class="item">
+        <div class="item-name">Foundation Model API <span class="item-tag tag-red">AI/ML</span></div>
+        <div class="item-desc">Claude Haiku classifies free-text responses into topics — zero infrastructure</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="flow-label">
+  Users <span class="arrow">&#x276F;</span> Application <span class="arrow">&#x276F;</span> LakeBase <span class="arrow">&#x276F;</span> Databricks Platform
+</div>
+
+</body>
+</html>

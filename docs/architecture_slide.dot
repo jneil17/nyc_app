@@ -1,0 +1,62 @@
+digraph NYCDemoArch {
+    label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0"><TR><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="26" COLOR="#1B3139">dbxdemonyc.com — Architecture</FONT></TD></TR><TR><TD><FONT FACE="Helvetica" POINT-SIZE="13" COLOR="#888888">Live Event Registration App — Powered by Databricks</FONT></TD></TR></TABLE>>;
+    labelloc=t;
+    rankdir=LR;
+    splines=polyline;
+    nodesep=0.5;
+    ranksep=0.85;
+    bgcolor="#FFFFFF";
+    pad="0.4,0.2";
+    dpi=200;
+
+    node [fontname="Helvetica", fontsize=11, style="filled,rounded", shape=box, penwidth=1.8, margin="0.12,0.08"];
+    edge [fontname="Helvetica", fontsize=9, penwidth=1.5, arrowsize=0.8];
+
+    // ═══════ USERS ═══════
+    subgraph cluster_users {
+        label=<<FONT FACE="Helvetica-Bold" POINT-SIZE="11" COLOR="#1B3139">USERS</FONT>>;
+        style="filled,rounded"; fillcolor="#EEEDE9"; color="#1B3139"; penwidth=1.5; margin=10;
+        attendees [label=<<TABLE BORDER="0" CELLBORDER="0"><TR><TD><FONT POINT-SIZE="13">&#x1F4F1;</FONT></TD><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="11"> Attendees</FONT></TD></TR></TABLE>>, fillcolor="#FFFFFF", color="#1B3139"];
+        presenter [label=<<TABLE BORDER="0" CELLBORDER="0"><TR><TD><FONT POINT-SIZE="13">&#x1F3A4;</FONT></TD><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="11"> Presenter</FONT></TD></TR></TABLE>>, fillcolor="#FFFFFF", color="#1B3139"];
+    }
+
+    // ═══════ APP ═══════
+    subgraph cluster_app {
+        label=<<FONT FACE="Helvetica-Bold" POINT-SIZE="11" COLOR="#3B6CF5">APPLICATION</FONT>>;
+        style="filled,rounded"; fillcolor="#EEF2FF"; color="#3B6CF5"; penwidth=1.5; margin=10;
+        react [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="1"><TR><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="12">React Frontend</FONT></TD></TR><TR><TD><FONT POINT-SIZE="9" COLOR="#666">Registration + Dashboard</FONT></TD></TR><TR><TD><FONT POINT-SIZE="8" COLOR="#3B6CF5">AWS Amplify Static</FONT></TD></TR></TABLE>>, fillcolor="#FFFFFF", color="#3B6CF5"];
+        express [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="1"><TR><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="12">Express.js API</FONT></TD></TR><TR><TD><FONT POINT-SIZE="9" COLOR="#666">REST · Auth · Proxy</FONT></TD></TR><TR><TD><FONT POINT-SIZE="8" COLOR="#3B6CF5">AWS Amplify Compute</FONT></TD></TR></TABLE>>, fillcolor="#FFFFFF", color="#3B6CF5"];
+    }
+
+    // ═══════ LAKEBASE ═══════
+    subgraph cluster_lakebase {
+        label=<<FONT FACE="Helvetica-Bold" POINT-SIZE="11" COLOR="#00A972">LAKEBASE</FONT>>;
+        style="filled,rounded"; fillcolor="#EEFFF6"; color="#00A972"; penwidth=2.0; margin=10;
+        lakebase [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="1"><TR><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="12">Managed Postgres</FONT></TD></TR><TR><TD><FONT POINT-SIZE="9" COLOR="#666">PG 17 · Autoscaling</FONT></TD></TR></TABLE>>, fillcolor="#FFFFFF", color="#00A972", penwidth=2.0];
+        branching [label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="1"><TR><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="11">Branching</FONT></TD></TR><TR><TD><FONT POINT-SIZE="9" COLOR="#666">prod / dev</FONT></TD></TR></TABLE>>, fillcolor="#D9F5EA", color="#00A972", style="filled,rounded,dashed"];
+    }
+
+    // ═══════ DATABRICKS ═══════
+    subgraph cluster_databricks {
+        label=<<FONT FACE="Helvetica-Bold" POINT-SIZE="12" COLOR="#FF3621">DATABRICKS PLATFORM</FONT>>;
+        style="filled,rounded"; fillcolor="#FFF5F3"; color="#FF3621"; penwidth=2.5; margin=12;
+
+        unity [label=<<TABLE BORDER="0" CELLBORDER="0"><TR><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="12">Unity Catalog</FONT></TD></TR><TR><TD><FONT POINT-SIZE="9" COLOR="#666">Federated Queries</FONT></TD></TR></TABLE>>, fillcolor="#FFFFFF", color="#FF3621"];
+        dashboard [label=<<TABLE BORDER="0" CELLBORDER="0"><TR><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="12">AI/BI Dashboard</FONT></TD></TR><TR><TD><FONT POINT-SIZE="9" COLOR="#666">Embedded via SDK</FONT></TD></TR></TABLE>>, fillcolor="#FFFFFF", color="#FF3621"];
+        genie [label=<<TABLE BORDER="0" CELLBORDER="0"><TR><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="12">Genie</FONT></TD></TR><TR><TD><FONT POINT-SIZE="9" COLOR="#666">NL → SQL</FONT></TD></TR></TABLE>>, fillcolor="#FFFFFF", color="#FF3621"];
+        fmapi [label=<<TABLE BORDER="0" CELLBORDER="0"><TR><TD><FONT FACE="Helvetica-Bold" POINT-SIZE="12">Foundation Model API</FONT></TD></TR><TR><TD><FONT POINT-SIZE="9" COLOR="#666">NLP Classification</FONT></TD></TR></TABLE>>, fillcolor="#FFFFFF", color="#FF3621"];
+
+        // Internal: UC feeds the three analytics nodes
+        unity -> dashboard [color="#FF3621"];
+        unity -> genie [color="#FF3621"];
+        unity -> fmapi [color="#FF3621"];
+    }
+
+    // ═══════ EDGES ═══════
+    attendees -> react [color="#888"];
+    presenter -> react [color="#888"];
+    react -> express [color="#1B3139", penwidth=1.8];
+    express -> lakebase [color="#00A972", penwidth=2.0];
+    lakebase -> branching [style=dashed, color="#00A972", arrowhead=none];
+    lakebase -> unity [color="#FF3621", penwidth=2.0];
+}
