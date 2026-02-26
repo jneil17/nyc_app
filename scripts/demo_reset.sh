@@ -56,7 +56,7 @@ if [[ "$YES" == false ]]; then
   fi
 fi
 
-psql "$CONN" -c "TRUNCATE TABLE event_registrations;"
+psql "$CONN" -c "TRUNCATE TABLE event_registrations CASCADE;"
 echo "All registrations deleted."
 
 if [[ "$SEED" == true ]]; then
