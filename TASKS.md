@@ -14,7 +14,15 @@
 
 ## Active Tasks
 
-_No active tasks. All P0/P1 work is complete. See backlog for future enhancements._
+### 21. Demo presentation deck — theming/formatting
+- **Status:** DONE
+- **Owner:** Coordinator
+- **Details:** Apply Databricks brand theme from source pitch deck to target demo presentation. Navy backgrounds, lava accents, DM Sans fonts, logo placement. 5 slide templates created: title, content, section break, two-column, closing.
+- **Deck:** https://docs.google.com/presentation/d/1w2fmKMqEUsjTvRO8Tj7BnqFw5C9BX-6UiLMO1I-CCJA/edit
+
+### 22. Demo presentation deck — content
+- **Status:** IN PROGRESS (separate agent)
+- **Details:** Fill in slide content for tonight's NYC Founders demo presentation.
 
 ---
 
@@ -54,3 +62,4 @@ _No active tasks. All P0/P1 work is complete. See backlog for future enhancement
 | 13f | Genie chat UI on dashboard | Claude 1 | 2026-02-22 | `GenieChat.jsx` — input, starter questions, data table, SQL viewer, follow-ups |
 | 19 | Architecture diagrams (presentable + detailed) | Coordinator | 2026-02-22 | `docs/architecture.html` (slide-style reference arch) + `docs/architecture_detailed.html` (deep technical) |
 | 20 | Databricks logo branding | Claude 3 | 2026-02-22 | Header + Dashboard "Powered by" use official Databricks logo from CDN |
+| 21 | Demo deck — Databricks theme formatting | Coordinator | 2026-02-26 | 5 themed slides: title, content, section break, two-column, closing. Navy/lava/oat palette, DM Sans, logos. |

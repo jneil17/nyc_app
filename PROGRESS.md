@@ -198,3 +198,19 @@
 - 20 tasks completed total (18 from session 1 + 2 from session 2)
 - All changes committed and pushed to main
 - Backlog remaining: topic-colored choropleth, teardown script
+
+### 2026-02-26 — Coordinator (Demo Presentation Deck)
+
+**Task 21: Demo deck — Databricks brand theming applied**
+- Target deck: https://docs.google.com/presentation/d/1w2fmKMqEUsjTvRO8Tj7BnqFw5C9BX-6UiLMO1I-CCJA/edit
+- Theme source: https://docs.google.com/presentation/d/1TNSfQrIsvdpSO8U-y0k0Y46l5yOZGxWByHcWwyOKkdc/edit
+- Read source deck styling → extracted Databricks brand colors, fonts, layout patterns
+- Applied to 5 slides in target deck:
+  1. **Title slide** — Navy (#1A3038) background, centered title/subtitle in Oat (#F9F7F4), Databricks logo top-left, lava (#FF6046) accent bar bottom
+  2. **Content slide** — Navy bg, lava left accent bar, title + body text areas, logo top-right, lava bottom bar
+  3. **Section break** — Full lava background, large section number + title in navy text (high contrast), logo
+  4. **Two-column layout** — Navy bg, lava left bar, title + two equal content columns, logo, bottom bar
+  5. **Closing slide** — Navy bg, lava corner accent block, "Thank You" text, dbxdemonyc.com in lava, logo, bottom bar
+- Font: DM Sans across all slides (44pt bold titles, 32pt section titles, 22pt subtitles, 18pt body)
+- All placeholder text is editable — content agent will fill in actual demo content
+- Verified: All 5 slides render correctly with consistent branding
