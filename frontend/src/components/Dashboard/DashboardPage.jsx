@@ -125,8 +125,8 @@ function DashboardPage() {
         <RecentResponsesTable registrations={registrations} />
       </section>
 
-      {/* Databricks Branding */}
-      <div className="mt-8 mb-4 text-center">
+      {/* Databricks Branding + GitHub Link */}
+      <div className="mt-8 mb-4 text-center space-y-3">
         <div className="inline-flex items-center px-4 py-2 rounded-full bg-oat-medium text-xs md:text-sm text-gray-500 text-center">
           <img
             src="https://cdn.bfldr.com/9AYANS2F/at/9c6z3t9c35wp88vc2t796qq9/primary-lockup-full-color-rgb.svg?format=png&crop=121%2C113%2Cx0%2Cy0&pad=4%2C0%2C9%2C12"
@@ -134,6 +134,17 @@ function DashboardPage() {
             className="h-4 mr-2 flex-shrink-0"
           />
           <span>Powered by Databricks LakeBase <span className="hidden sm:inline">&amp; Unity Catalog</span></span>
+        </div>
+        <div>
+          <a
+            href="https://github.com/jneil17/nyc_app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-xs md:text-sm text-gray-400 hover:text-navy-800 transition-colors"
+          >
+            <i className="fab fa-github mr-1.5 text-base"></i>
+            View source on GitHub
+          </a>
         </div>
       </div>
     </main>
