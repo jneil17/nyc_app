@@ -14,12 +14,6 @@ function Header() {
                 className="h-7 md:h-9"
               />
             </Link>
-            {branch && branch !== 'production' && (
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>
-                {branch} branch
-              </span>
-            )}
           </div>
           <nav className="flex items-center space-x-1">
             <Link
