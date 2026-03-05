@@ -47,6 +47,7 @@
     "prettier": "^3.5.3",
     "typescript": "^5.7.2",
     "vite": "^7.1.7",
+    "vite-plugin-zephyr": "^0.1.13",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.0.5",
     "wrangler": "^4.40.3"

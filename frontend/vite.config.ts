@@ -1,18 +1,17 @@
-import { defineConfig } from 'vite'
-import { devtools } from '@tanstack/devtools-vite'
-import tsconfigPaths from 'vite-tsconfig-paths'
-import { tanstackStart } from '@tanstack/react-start/plugin/vite'
-import viteReact from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import { cloudflare } from '@cloudflare/vite-plugin'
-
+import { defineConfig } from 'vite';
+import { withZephyr } from "vite-plugin-zephyr";
+import { devtools } from '@tanstack/devtools-vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import { tanstackStart } from '@tanstack/react-start/plugin/vite';
+import viteReact from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import { cloudflare } from '@cloudflare/vite-plugin';
 export default defineConfig({
-  plugins: [
-    devtools(),
-    cloudflare({ viteEnvironment: { name: 'ssr' } }),
-    tsconfigPaths({ projects: ['./tsconfig.json'] }),
-    tailwindcss(),
-    tanstackStart(),
-    viteReact(),
-  ],
-})
+  plugins: [devtools(), cloudflare({
+    viteEnvironment: {
+      name: 'ssr'
+    }
+  }), tsconfigPaths({
+    projects: ['./tsconfig.json']
+  }), tailwindcss(), tanstackStart(), viteReact(), withZephyr()]
+});

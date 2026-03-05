@@ -128,11 +128,42 @@ Deployed both workers directly via `wrangler deploy` (without Zephyr, as baselin
 - Account ID: `ccc050cc099a5c87047a652169617a76`
 - Shared with Zack for Zephyr private beta access
 
-### Step 5: Zephyr Cloud integration (PENDING)
+### Step 5: SSR bug fix (Mar 4, 2026)
 
-- Waiting for Zack to add account to Zephyr private beta
-- Will add Zephyr config to project
-- Will compare deploy times: Amplify (~2 min) vs raw Wrangler (~30s) vs Zephyr (target: sub-second)
+- `Header.jsx` referenced an undefined `branch` variable, causing `ReferenceError` during SSR
+- Crashed the entire Cloudflare Worker on every request (500 error)
+- Fixed by removing the dead branch indicator code
+- Redeployed frontend — app now loads at `https://nyc-demo-web.jwneil17.workers.dev`
+
+### Step 6: Zephyr Cloud integration (Mar 4, 2026)
+
+- Ran `npx with-zephyr` in frontend — auto-detected Vite and added `withZephyr()` plugin to `vite.config.ts`
+- Installed `vite-plugin-zephyr` via pnpm
+- Authenticated with Zephyr Cloud (free account, no private beta needed for basic features)
+- Built with `VITE_API_URL=https://nyc-demo-api.jwneil17.workers.dev pnpm build:frontend`
+
+**Zephyr deploy results:**
+
+| Build | Assets Uploaded | Upload Time | Edge Deploy Time | Preview URL |
+|-------|----------------|-------------|-----------------|-------------|
+| Client (first build) | 38/38 assets (8,690 KB) | 4,397ms | 4,527ms | `jwneil17-gmail-com-1-frontend-...-ze.zephyrcloud.app` |
+| SSR (incremental) | 1/39 assets (0.10 KB) | 122ms | **382ms** | `jwneil17-gmail-com-4-frontend-...-ze.zephyrcloud.app` |
+
+The SSR build deployed in **382ms** because most assets were already cached from the client build — this demonstrates the incremental deploy speed.
+
+### Step 7: Zephyr preview URLs — SSR limitation (Mar 4, 2026)
+
+**Issue:** Zephyr preview URLs return `Error: assets not found in snapshot`.
+
+**Root cause:** Zephyr's edge CDN hosts static assets and can serve client-side SPAs, but TanStack Start uses **server-side rendering on Cloudflare Workers**. The Zephyr preview URL can't run the Worker SSR runtime — it only serves static files.
+
+**What works:**
+- `https://nyc-demo-web.jwneil17.workers.dev` — Cloudflare Worker runs SSR + serves assets (works)
+- Zephyr preview URLs — static asset hosting only (fails for SSR apps)
+
+**What's needed:** Zephyr's **dynamic worker loaders** feature (private beta) would connect Zephyr's deployment orchestration with the Cloudflare Worker runtime, enabling preview URLs for SSR apps.
+
+**Action item:** Share Cloudflare Account ID with Zack for dynamic worker loaders private beta access.
 
 ---
 
@@ -142,7 +173,9 @@ Deployed both workers directly via `wrangler deploy` (without Zephyr, as baselin
 |--------|-----------|-------------|-------|-------|
 | AWS Amplify (CRA + Express) | ~60-90s | ~30s | ~2 min | Current production |
 | Wrangler direct (Vite + Hono) | ~3.2s | ~28s | ~31s | Baseline without Zephyr |
-| Zephyr Cloud | TBD | TBD | TBD | Target: sub-second |
+| Zephyr Cloud (first build) | ~3.5s | ~4.5s | ~8s | 38 assets, full upload |
+| Zephyr Cloud (incremental) | ~1.9s | **382ms** | ~2.3s | 1 asset changed, rest cached |
+| Zephyr Cloud (target w/ dynamic workers) | TBD | TBD | TBD | Needs private beta access |
 
 ---
 
@@ -190,13 +223,25 @@ UNCHANGED:
 
 ---
 
+## Current Status
+
+| Component | Status | URL |
+|-----------|--------|-----|
+| Backend (Hono on CF Workers) | Working | `https://nyc-demo-api.jwneil17.workers.dev` |
+| Frontend (TanStack Start on CF Workers) | Working | `https://nyc-demo-web.jwneil17.workers.dev` |
+| Zephyr plugin | Integrated | `vite-plugin-zephyr` in `vite.config.ts` |
+| Zephyr preview URLs | Broken (SSR) | Needs dynamic worker loaders |
+| Zephyr dashboard | Active | `https://app.zephyr-cloud.io` |
+| Original Amplify (production) | Working | `https://dbxdemonyc.com` |
+
 ## Next Steps
 
-- [ ] Get Zephyr private beta access (Zack adding account ID)
-- [ ] Add Zephyr config to project
-- [ ] Deploy via Zephyr and measure times
+- [x] ~~Add Zephyr config to project~~ (`npx with-zephyr` + `vite-plugin-zephyr`)
+- [x] ~~Deploy via Zephyr and measure times~~ (382ms incremental!)
+- [x] ~~Configure `VITE_API_URL` on frontend worker~~ (set to backend worker URL)
+- [x] ~~Add CORS origin for frontend worker URL on backend~~ (`CORS_ORIGINS` secret set)
+- [ ] Get Zephyr dynamic worker loaders private beta (share CF Account ID with Zack: `ccc050cc099a5c87047a652169617a76`)
+- [ ] Get Zephyr preview URLs working for SSR apps
 - [ ] Set up Cloudflare DNS or keep Route 53
-- [ ] Configure `VITE_API_URL` on frontend worker to point to backend worker URL
-- [ ] Add CORS origin for frontend worker URL on backend
-- [ ] Verify end-to-end: registration → LakeBase → dashboard
+- [ ] Verify end-to-end: registration → LakeBase → dashboard (on CF Workers)
 - [ ] Write up comparison article
